@@ -13,16 +13,15 @@ import {
     Zap,
     Upload,
     FileUp,
-    HardDrive,
     X,
     File,
     FileText,
     Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
 
 const FileUploadModal = ({ isOpen, onClose, isDarkMode, onFilesUploaded }) => {
-    const [activeTab, setActiveTab] = useState('local');
     const [isUploading, setIsUploading] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState([]);
     const [dragActive, setDragActive] = useState(false);
@@ -126,66 +125,26 @@ const FileUploadModal = ({ isOpen, onClose, isDarkMode, onFilesUploaded }) => {
                     </button>
                 </div>
 
-                <div className="flex border-b mb-6">
-                    {['local', 'drive'].map(tab => (
-                        <button
-                            key={tab}
-                            className={`px-4 py-2 font-medium relative ${
-                                activeTab === tab
-                                    ? isDarkMode ? 'text-green-400' : 'text-green-600'
-                                    : isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                            }`}
-                            onClick={() => setActiveTab(tab)}
-                        >
-                            <div className="flex items-center gap-2">
-                                {tab === 'local' ? <HardDrive size={16} /> : (
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 18L15 18L23 18L16 8L8 8L1 18L8 18Z" fill="#4285F4" />
-                                        <path d="M8 8L1 18L5 24H12L8 18L15 18L8 8Z" fill="#0F9D58" />
-                                        <path d="M15 18L19 24L23 18L15 8L12 14L16 8L15 18Z" fill="#FFCD40" />
-                                    </svg>
-                                )}
-                                <span>{tab === 'local' ? 'Local Upload' : 'Google Drive'}</span>
-                            </div>
-                            {activeTab === tab && (
-                                <motion.div layoutId="tab-indicator" className={`absolute bottom-0 left-0 right-0 h-0.5 ${isDarkMode ? 'bg-green-400' : 'bg-green-600'}`} />
-                            )}
-                        </button>
-                    ))}
+
+                <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        dragActive ? (isDarkMode ? 'border-green-400 bg-green-400/10' : 'border-green-600 bg-green-50') : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-300 hover:border-gray-400')
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                >
+                    <input ref={fileInputRef} type="file" multiple onChange={handleChange} className="hidden" />
+                    <div className="flex flex-col items-center justify-center gap-3" onClick={() => fileInputRef.current?.click()}>
+                        <div className={`p-3 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                            <Upload size={24} className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
+                        </div>
+                        <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Drag files here or click to upload</h3>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Support for PDF, DOC, TXT, CSV and more</p>
+                    </div>
                 </div>
 
-                {activeTab === 'local' ? (
-                    <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                            dragActive ? (isDarkMode ? 'border-green-400 bg-green-400/10' : 'border-green-600 bg-green-50') : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-300 hover:border-gray-400')
-                        }`}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                    >
-                        <input ref={fileInputRef} type="file" multiple onChange={handleChange} className="hidden" />
-                        <div className="flex flex-col items-center justify-center gap-3" onClick={() => fileInputRef.current?.click()}>
-                            <div className={`p-3 rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                                <Upload size={24} className={isDarkMode ? 'text-green-400' : 'text-green-600'} />
-                            </div>
-                            <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Drag files here or click to upload</h3>
-                            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Support for PDF, DOC, TXT, CSV and more</p>
-                        </div>
-                    </div>
-                ) : (
-                  <div className={`rounded-lg p-6 text-center ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                      <div className="flex flex-col items-center justify-center gap-3">
-                          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M16 36L30 36L46 36L32 16L16 16L2 36L16 36Z" fill="#4285F4" />
-                              <path d="M16 16L2 36L10 48H24L16 36L30 36L16 16Z" fill="#0F9D58" />
-                              <path d="M30 36L38 48L46 36L30 16L24 28L32 16L30 36Z" fill="#FFCD40" />
-                          </svg>
-                          <h3 className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Connect to Google Drive</h3>
-                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Access your documents directly from Google Drive</p>
-                      </div>
-                  </div>
-                )}
 
                 {uploadedFiles.length > 0 && (
                     <div className="mt-6">
@@ -243,9 +202,9 @@ const FileUploadModal = ({ isOpen, onClose, isDarkMode, onFilesUploaded }) => {
 
 const Card = ({ icon: Icon, title, description, isDarkMode }) => (
     <motion.div className="group relative overflow-hidden mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className={`p-4 rounded-lg transition-all duration-300 ease-out shadow-lg cursor-pointer ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700/80' : 'bg-gray-100 hover:bg-gray-200/80'}`}>
+        <div className={`p-4 rounded-2xl transition-all duration-300 ease-out shadow-lg cursor-pointer ${isDarkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white hover:shadow-xl' : 'bg-gray-100 hover:bg-gray-200/80'}`}>
             <div className="flex items-start space-x-3">
-                <motion.div className="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center" whileHover={{ scale: 1.1 }}>
+                <motion.div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center" whileHover={{ scale: 1.1 }}>
                     <Icon className="w-5 h-5 text-green-500" />
                 </motion.div>
                 <div className="flex-1">
@@ -266,50 +225,62 @@ const App = () => {
     const messagesEndRef = useRef(null);
     const API_KEY = import.meta.env.VITE_API_GENERATIVE_LANGUAGE_CLIENT;
 
+    // Replace with actual image URL or use a local import
+    const logoUrl = "https://cdn.discordapp.com/attachments/1341687232855146565/1341709124139876422/SemiColonError_3.png?ex=67b7a43e&is=67b652be&hm=dce6281aa273776e03de4cd0f5b2d05271ca65dab9954b0844a6f62ccdab8bdc&";
+
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     const handleApiCall = async (prompt, filename = null) => {
-      setIsLoading(true);
-      const userMessage = {
-        id: Date.now(),
-        text: filename ? `Uploaded: ${filename}` : question,
-        sender: 'user',
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, userMessage]);
-
-      try {
-        const response = await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-          { contents: [{ parts: [{ text: prompt }] }] }
-        );
-
-        const generatedText = response.data.candidates[0].content.parts[0].text;
-        const botMessage = {
-          id: Date.now(),
-          text: generatedText,
-          sender: 'finora',
-          timestamp: new Date().toISOString()
+        setIsLoading(true);
+        const userMessage = {
+            id: Date.now(),
+            text: filename ? `Uploaded: ${filename}` : question,
+            sender: 'user',
+            timestamp: new Date().toISOString()
         };
-        setMessages(prev => [...prev, botMessage]);
+        setMessages(prev => [...prev, userMessage]);
 
-      } catch (error) {
-          console.error("Error fetching API response:", error); // Keep for debugging
-        const errorMessage = {
-          id: Date.now(),
-          text: "Sorry, I couldn't process that.",
-          sender: 'finora',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, errorMessage]);
+        try {
+            const response = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+                { contents: [{ parts: [{ text: prompt }] }] }
+            );
 
-      } finally {
-        setIsLoading(false);
-        setQuestion(''); // Clear the question input after sending or error
-      }
+            // Formatting the output
+            const rawText = response.data.candidates[0].content.parts[0].text;
+            const generatedText = `
+**Summary:**
+${rawText}
+
+**Key Points:**
+${rawText.split('. ').map(point => `* ${point}`).join('\n')}
+`;
+
+            const botMessage = {
+                id: Date.now(),
+                text: generatedText,
+                sender: 'finora',
+                timestamp: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, botMessage]);
+
+        } catch (error) {
+            console.error("Error fetching API response:", error); // Keep for debugging
+            const errorMessage = {
+                id: Date.now(),
+                text: "Sorry, I couldn't process that.",
+                sender: 'finora',
+                timestamp: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+
+        } finally {
+            setIsLoading(false);
+            setQuestion(''); // Clear the question input after sending or error
+        }
     };
 
     const handleFileUpload = async (uploadedFiles) => {
@@ -339,8 +310,9 @@ const App = () => {
         <div className={`flex h-screen ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
             <AnimatePresence>{isUploadModalOpen && <FileUploadModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} isDarkMode={isDarkMode} onFilesUploaded={handleFileUpload} />}</AnimatePresence>
 
-            <motion.div className={`w-1/3 p-6 flex flex-col ${isDarkMode ? 'bg-black' : 'bg-white'}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7 }}>
+            <motion.div className={`w-1/3 p-6 flex flex-col rounded-r-2xl ${isDarkMode ? 'bg-gray-800 border-r border-gray-700 text-white shadow-lg' : 'bg-white'}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7 }}>
                 <div className="flex items-center justify-between mb-8">
+                    <img src={logoUrl} alt="SemiColonError Logo" style={{ width: 'auto', height: '40px' }} />
                     <h1 className="text-2xl font-bold text-pink-500">SemiColonError</h1>
                     <div className="flex items-center space-x-3">
                         <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-lg ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-black'}`}>{isDarkMode ? <Sun size={20} /> : <Moon size={20} />}</button>
@@ -348,14 +320,14 @@ const App = () => {
                     </div>
                 </div>
                 <h2 className={`text-lg font-medium mb-4 ${isDarkMode ? 'text-white' : 'text-black'}`}>AI Services</h2>
-                <Card icon={BarChart2} title="Code Collaboration" description="Smart code analysis" isDarkMode={isDarkMode} />
-                <Card icon={Clipboard} title="Project Management" description="AI-assisted project tracking" isDarkMode={isDarkMode} />
-                <Card icon={Zap} title="Task Automation" description="Intelligent workflow automation" isDarkMode={isDarkMode} />
+                <Card icon={BarChart2} title="API Collaboration" description="Smart summmary analysis" isDarkMode={isDarkMode} />
+                <Card icon={Clipboard} title="Project Management" description="AI-assisted" isDarkMode={isDarkMode} />
+                <Card icon={Zap} title="Efficient Automation" description="Intelligent and fast automation" isDarkMode={isDarkMode} />
 
                 <div className="mt-auto">
                     <div className="flex items-center justify-between mb-2">
                         <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Send a message</p>
-                        <button onClick={() => setIsUploadModalOpen(true)} className={`flex items-center gap-1 text-sm p-1.5 rounded ${isDarkMode ? 'text-green-400 hover:bg-gray-800' : 'text-green-600 hover:bg-gray-100'}`}><FileUp size={14} /><span>Upload File</span></button>
+                        <button onClick={() => setIsUploadModalOpen(true)} className={`flex items-center gap-1 text-sm p-1.5 rounded ${isDarkMode ? 'text-green-400 hover:bg-gray-700' : 'text-green-600 hover:bg-gray-100'}`}><FileUp size={14} /><span>Upload File</span></button>
                     </div>
                     <div className="relative">
                         <textarea
@@ -363,7 +335,7 @@ const App = () => {
                             onChange={(e) => setQuestion(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Ask something..."
-                            className={`w-full h-32 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-gray-800 text-gray-100 focus:ring-green-500/50' : 'bg-gray-100 text-gray-800 focus:ring-green-500/50'}`}
+                            className={`w-full h-32 p-3 pr-12 rounded-lg resize-none focus:outline-none focus:ring-2 ${isDarkMode ? 'bg-gray-700 text-gray-100 focus:ring-green-500/50' : 'bg-gray-100 text-gray-800 focus:ring-green-500/50'}`}
                         />
                         <button
                             onClick={handleSendMessage}
@@ -375,17 +347,13 @@ const App = () => {
                             <Send size={18} />
                         </button>
                     </div>
-                    <div className="mt-2 flex justify-between items-center">
-                        <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Powered by AI</span>
-                    </div>
+                   
                 </div>
             </motion.div>
 
             <div className={`flex-1 flex flex-col ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-                <div className={`flex items-center justify-between p-4 border-b ${isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'}`}>
-                    <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>AI Document Summarization</h2>
-                    <p className={`text-xs px-3 py-1 rounded-full ${isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>Free • Rs.0</p>
-                </div>
+                <div className={`flex items-center justify-center p-4 border-b ${isDarkMode ? 'bg-gray-900/90 border-gray-800' : 'bg-white border-gray-200'}`}>
+                <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-black'}`}>AI Summarization</h2>                </div>
 
                 <div className={`flex-1 overflow-y-auto p-6 space-y-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
                     {messages.length === 0 && (
@@ -416,7 +384,8 @@ const App = () => {
                                 <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center"><User size={18} className="text-pink-500" /></div>
                             )}
                             <div className={`max-w-[70%] rounded-lg p-4 ${msg.sender === 'finora' ? (isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800 shadow-sm') : 'bg-pink-500 text-white'}`}>
-                                <p>{msg.text}</p>
+                                {/* Use ReactMarkdown */}
+                                <ReactMarkdown>{msg.text}</ReactMarkdown>
                                 <span className={`text-xs block mt-2 ${msg.sender === 'finora' ? (isDarkMode ? 'text-gray-500' : 'text-gray-400') : 'text-pink-200'}`}>{new Date(msg.timestamp).toLocaleTimeString()}</span>
                             </div>
                         </motion.div>
